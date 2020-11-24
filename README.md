@@ -24,11 +24,11 @@ The output is then written to an ink file, to be run in the Inky editor
 
 
 ## To Improve  
-This is a quick and dirty first versions, with a few things . Improvements coming:  
-- Replace currently used string concatenation by an array of string. Perform the concatenation at the end only.
-- Create a function to set an appropriate amount of whitespacing when generating content to be indented (take into account the indentation level, whether it's a choice or not, and if it's sticky)
-This is obviously much cleaner than appending stuff like "  * " by hand.
+This is a quick and dirty first versions, with a few things. Improvements coming (crossed items have been implemented):  
+- ~~Replace currently used string concatenation by an array of string. Perform the concatenation at the end only.~~
+- ~~Create a function to set an appropriate amount of whitespacing when generating content to be indented (take into account the indentation level, whether it's a choice or not, and if it's sticky). This is obviously much cleaner than appending stuff like "  * " by hand.~~
 - Adding random text selection from an initial knowledge base? 
+- Cleaner Map generator
 
 
 
