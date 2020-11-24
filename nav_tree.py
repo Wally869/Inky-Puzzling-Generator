@@ -5,6 +5,8 @@ from enum import Enum
 
 from random import randint, choice
 
+from InkyUtils import *
+
 # article: runtime creation of a navigable location
 
 
@@ -15,10 +17,16 @@ class LocationTypes(Enum):
     Exit = 3
 
 
-class Items(Enum):
+class ItemsType(Enum):
     Key = 0,
     Pass = 1,
     Safe = 2
+
+
+@dataclass
+class Item:
+    pass
+
 
 
 @dataclass
@@ -43,38 +51,58 @@ class Location:
         return "=== {} ===\n".format(self.Identifier)
     def GetArrivalText(self):
         return "Your location is: {}.\n".format(self.Name)
-    def GetActionsText(self):
-        text = "  + [Look Around]\n    You decide to take a look around\n"
-        if len(self.Items) == 0:
-            text += "    There was nothing.\n"
-        else:
-            for item in self.Items:
-                if item == Items.Key:
-                    text += "    {hasKey == false:\n        You Found a key!\n        ~hasKey = true\n    }\n" # else: This is where you found that key.\n}"
-                if item == Items.Safe:
-                    # safe contains the pass
-                    text += "    You found a safe!\n"
-                    text += "    {hasPass: But it's empty...}\n" 
-                    text += "    {not hasPass: \n        {hasKey:\n            You open it with your key. There was a pass inside! You pick it up.\n            ~hasPass = true\n        }\n        {not hasKey:\n            But you have no way to open it\n        }\n        }\n"
-        text += "    -> {}\n".format(self.Identifier)
-        text += "  + [Go somewhere else]\n"
-        for conn in self.ConnectedLocations:
-            text += "     ++ [{}].\n-> {}\n".format(conn.Name, conn.Identifier)
-        return text
-    def Stringify(self):
-        stringified = self.LocationMarker
-        stringified += self.GetArrivalText()
-        if self.LocationType != LocationTypes.Exit:
-            stringified += "What would you like to do?\n"
-            stringified += self.GetActionsText()
-        else:
-            stringified += "{ hasPass: "
-            stringified += "You have reached the exit! Congrats! "
-            stringified += "-> END}\n "
-            stringified += "{not hasPass: "
-            stringified += "No pass, no exit."
-            stringified += "YOU STAY HERE FOREVER! -> END}\n"
-        return stringified
+
+
+def GenerateText_LocationConnections(location: Location, depth: int = 0):
+    generated = [GetLineHeaderText(depth), "Where would you like to go?\n"]
+    for c in location.ConnectedLocations:
+        generated += [GetLineHeaderChoice(depth, True), "[", c.Name, "]", "\n"]
+        generated += [GetLineHeaderText(depth + 1), "-> ", c.Identifier, "\n"]
+    return generated
+
+
+def GenerateText_LookAround(location: Location, depth: int = 0):
+    generated = []
+    if len(location.Items) == 0:
+        generated += [GetLineHeaderText(depth), "There is nothing around here...", "\n"]
+    else:
+        for item in location.Items:
+            if item == ItemsType.Key:
+                generated += GenerateConditionalAndToggle("hasKey", "You found a key on the floor!", "There is nothing here...", depth)
+            elif item == ItemsType.Safe:
+                conditionalPassText = GenerateConditionalAndToggle("hasPass", "You find a safe, with a keyhole. You open the safe using the key, and find a pass inside!", "There is an open safe, but there's nothing in it...", depth+1)
+                generated += GenerateConditional("hasKey", "There is a safe, I wonder how I can open it?", conditionalPassText, depth)
+            else:
+                pass
+    generated += ["-> ", location.Identifier, "\n"]
+    return generated
+
+
+def GenerateText_LocationChoices(location: Location, depth: int = 0):
+    generated = ["What would you like to do here?\n"]
+    generated += [GetLineHeaderChoice(depth, True), "[", "Look Around", "]", "\n"]
+    generated += GenerateText_LookAround(location, depth + 1)
+    if location.LocationType == LocationTypes.Exit:
+        generated += [GetLineHeaderChoice(depth, True), "[", "Exit", "]", "\n"]
+        generated += [GetLineHeaderText(depth + 1), "You have reached the exit.", "\n"]
+        generated += [GetLineHeaderText(depth + 1), "-> END", "\n"]
+    else:
+        generated += [GetLineHeaderChoice(depth, True), "[", "Go Elsewhere", "]", "\n"]
+        generated += GenerateText_LocationConnections(location, depth + 1)
+    return generated
+
+
+def GenerateLocationText(location: Location):
+    # Get Initial texts
+    elements = [location.LocationMarker, location.GetArrivalText()]
+    elements += GenerateText_LocationChoices(location, 0)
+    elements += "\n\n"
+    return elements
+
+
+
+
+
 
 
 def GenerateMap(nbRooms: int = 3, nbCorridors: int = 3):
@@ -88,7 +116,7 @@ def GenerateMap(nbRooms: int = 3, nbCorridors: int = 3):
             Location("ClassRoom {}".format(i), "classroom{}".format(i), LocationTypes.Classroom)
         )
     # put the safe in one of the rooms
-    choice(rooms).Items.append(Items.Safe)
+    choice(rooms).Items.append(ItemsType.Safe)
 
     # generate corridors
     corridors = []
@@ -98,7 +126,7 @@ def GenerateMap(nbRooms: int = 3, nbCorridors: int = 3):
         )
     
     # put the key in one of the corridors
-    choice(corridors).Items.append(Items.Key)
+    choice(corridors).Items.append(ItemsType.Key)
 
     # generate links between corridors. Need to check if fully connected btw.
     for _, corr in enumerate(corridors):
@@ -144,10 +172,21 @@ output = "VAR hasKey = false\nVAR hasPass = false\n"
 
 output += "-> entrance\n\n"
 
+elems = []
+print(len(mapRooms))
 for room in mapRooms:
-    output += room.Stringify()
+    #output += room.Stringify()
+    elems += GenerateLocationText(room)
 
+#print(elems)
+#roomsText = "".join(elems)
+roomsText = ""
+for idElem, elem in enumerate(elems):
+    if type(elem) == list:
+        elems[idElem] = "".join(elem)
 
+roomsText = "".join(elems)
+output = output + roomsText
 
 
 with open("navTree.ink", "w+") as f:
