@@ -10,36 +10,12 @@ What would you like to do here?
 -> entrance
   + [Go Elsewhere]
     Where would you like to go?
-     ++ [Corridor 2]
-        -> corridor2
+     ++ [Corridor 1]
+        -> corridor1
 
 
 === classroom0 ===
 Your location is: ClassRoom 0.
-What would you like to do here?
-  + [Look Around]
-    There is nothing around here...
--> classroom0
-  + [Go Elsewhere]
-    Where would you like to go?
-     ++ [Corridor 1]
-        -> corridor1
-
-
-=== classroom1 ===
-Your location is: ClassRoom 1.
-What would you like to do here?
-  + [Look Around]
-    There is nothing around here...
--> classroom1
-  + [Go Elsewhere]
-    Where would you like to go?
-     ++ [Corridor 1]
-        -> corridor1
-
-
-=== classroom2 ===
-Your location is: ClassRoom 2.
 What would you like to do here?
   + [Look Around]
     { not hasKey:
@@ -53,6 +29,30 @@ What would you like to do here?
         }
 
     }
+-> classroom0
+  + [Go Elsewhere]
+    Where would you like to go?
+     ++ [Corridor 0]
+        -> corridor0
+
+
+=== classroom1 ===
+Your location is: ClassRoom 1.
+What would you like to do here?
+  + [Look Around]
+    There is nothing around here...
+-> classroom1
+  + [Go Elsewhere]
+    Where would you like to go?
+     ++ [Corridor 0]
+        -> corridor0
+
+
+=== classroom2 ===
+Your location is: ClassRoom 2.
+What would you like to do here?
+  + [Look Around]
+    There is nothing around here...
 -> classroom2
   + [Go Elsewhere]
     Where would you like to go?
@@ -64,26 +64,30 @@ What would you like to do here?
 Your location is: Corridor 0.
 What would you like to do here?
   + [Look Around]
-    There is nothing around here...
--> corridor0
-  + [Go Elsewhere]
-    Where would you like to go?
-     ++ [Corridor 2]
-        -> corridor2
-     ++ [Corridor 1]
-        -> corridor1
-
-
-=== corridor1 ===
-Your location is: Corridor 1.
-What would you like to do here?
-  + [Look Around]
     { not hasKey:
         You found a key on the floor!
         ~hasKey= true
     - else: 
         There is nothing here...
     }
+-> corridor0
+  + [Go Elsewhere]
+    Where would you like to go?
+     ++ [Corridor 1]
+        -> corridor1
+     ++ [Corridor 2]
+        -> corridor2
+     ++ [ClassRoom 0]
+        -> classroom0
+     ++ [ClassRoom 1]
+        -> classroom1
+
+
+=== corridor1 ===
+Your location is: Corridor 1.
+What would you like to do here?
+  + [Look Around]
+    There is nothing around here...
 -> corridor1
   + [Go Elsewhere]
     Where would you like to go?
@@ -91,12 +95,10 @@ What would you like to do here?
         -> corridor0
      ++ [Corridor 2]
         -> corridor2
-     ++ [ClassRoom 0]
-        -> classroom0
-     ++ [ClassRoom 1]
-        -> classroom1
      ++ [ClassRoom 2]
         -> classroom2
+     ++ [Entrance]
+        -> entrance
      ++ [Exit]
         -> exit
 
@@ -113,8 +115,6 @@ What would you like to do here?
         -> corridor0
      ++ [Corridor 1]
         -> corridor1
-     ++ [Entrance]
-        -> entrance
 
 
 === exit ===
@@ -124,7 +124,15 @@ What would you like to do here?
     There is nothing around here...
 -> exit
   + [Exit]
-    You have reached the exit.
-    -> END
+    { not hasPass:
+        There is an exit door. You decide to use your pass on it. The door slowly opens... You are free!
+    - else: 
+        No key, no exit
+    }
+    { not hasPass:
+        -> END
+    - else: 
+        -> exit
+    }
 
 

@@ -84,8 +84,12 @@ def GenerateText_LocationChoices(location: Location, depth: int = 0):
     generated += GenerateText_LookAround(location, depth + 1)
     if location.LocationType == LocationTypes.Exit:
         generated += [GetLineHeaderChoice(depth, True), "[", "Exit", "]", "\n"]
-        generated += [GetLineHeaderText(depth + 1), "You have reached the exit.", "\n"]
-        generated += [GetLineHeaderText(depth + 1), "-> END", "\n"]
+        #generated += [GetLineHeaderText(depth + 1), "You have reached the exit.", "\n"]
+        #generated += [GetLineHeaderText(depth + 1), "-> END", "\n"]
+        generated += GenerateConditional("hasPass", "There is an exit door. You decide to use your pass on it. The door slowly opens... You are free!", "No key, no exit", depth + 1)
+        generated += GenerateConditional("hasPass", "-> END", "-> {}".format(location.Identifier), depth + 1)
+        
+
     else:
         generated += [GetLineHeaderChoice(depth, True), "[", "Go Elsewhere", "]", "\n"]
         generated += GenerateText_LocationConnections(location, depth + 1)
